@@ -41,15 +41,18 @@ function scanRepoDirectory(){
 
 //Global Vars
 $arrRepos = array();
+$arrReposAtEQdkp = array();
 
 function bootstrap(){
-	global $arrRepos;
+	global $arrRepos, $arrReposAtEQdkp;
 	
 	$arrRepos = scanRepoDirectory();
 	
 	if (isset($_POST['repo']) && $_POST['repo'] != ""){
 		handle_actions($_POST['repo']);
 	}
+	
+	$arrReposAtEQdkp = check_if_repo_in_eqdkp();
 }
 
 function handle_actions($strRepo){
@@ -210,6 +213,38 @@ function deletefromeqdkp($strRepo){
 
 	$to = $to.$strFoldername.'/';
 	delete($to);
+}
+
+function check_if_repo_in_eqdkp(){
+	global $repo_dir, $eqdkp_dir;
+	$arrOut = array();
+	$arrRepos = scanRepoDirectory();
+	foreach($arrRepos as $strRepo){
+		$arrRepo = explode('-', $strRepo);
+		$strPrefix = $arrRepo[0];
+		$strFoldername = str_replace($strPrefix.'-', "", $strRepo);
+		
+		$from = $repo_dir.$strRepo.'/';
+		
+		switch($strPrefix){
+			case 'game': $to = $eqdkp_dir.'games/'; break;
+		
+			case 'plugin': $to = $eqdkp_dir.'plugins/'; break;
+		
+			case 'module':
+			case 'portalmodule':
+			case 'portal': $to = $eqdkp_dir.'portal/'; break;
+		
+			case 'template':
+			case 'style': $to = $eqdkp_dir.'templates/'; break;
+		
+			default: $to = $eqdkp_dir;
+		}
+		
+		$to = $to.$strFoldername.'/';
+		if(is_dir($to)) $arrOut[$strRepo] = $strRepo;
+	}
+	return $arrOut;
 }
 
 //Init
@@ -496,17 +531,28 @@ a.blue, a.blue:hover, a.button, a.button:hover {
 .nowrap{
 	white-space: nowrap;
 }
+button[disabled], button[disabled]:hover, input[type=submit][disabled], input[type=button][disabled], input[type=reset][disabled],input[type=submit][disabled]:hover, input[type=button][disabled]:hover, input[type=reset][disabled]:hover {
+	color: #999;
+	border: solid 1px #b7b7b7;
+	background: #fff;
+	background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ededed));
+	background: -moz-linear-gradient(top, #fff, #ededed);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed');
+	text-shadow: none;
+	box-shadow: none;
+	cursor: default;
+}
 </style>
 		
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>Repo Helper</title>
+	<title>Git Repository Helper</title>
 </head>
 
 <body>
 		<form action="" method="post" id="form_install">
 		<div id="header">
 				<div id="logo"></div>
-				<div id="logotext">Repo Helper</div>
+				<div id="logotext">Git Repository Helper</div>
 		</div>
 		<div id="installer">
 			<div id="main">
@@ -540,8 +586,8 @@ a.blue, a.blue:hover, a.button, a.button:hover {
 								<form action="" method="post">
 									<input type="hidden" name="repo" value="<?php echo $key; ?>" />
 									<button type="submit" name="copytoeqdkp">Copy to EQdkp</button>
-									<button type="submit" name="copytorepo">Copy to Repo</button>
-									<button type="submit" name="deletefromeqdkp">Delete from EQdkp</button><br />
+									<button type="submit" name="copytorepo" <?php if(!isset($arrReposAtEQdkp[$key])) echo "disabled='disabled'"; ?>>Copy to Repo</button>
+									<button type="submit" name="deletefromeqdkp" <?php if(!isset($arrReposAtEQdkp[$key])) echo "disabled='disabled'"; ?>>Delete from EQdkp</button><br />
 									<button type="submit" name="gitupdate">Git Update</button>
 									<input type="text" name="gitcommitmsg" size="30" value="Update" />
 									<button type="submit" name="gitcommit">Git Commit</button>
