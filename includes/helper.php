@@ -67,4 +67,15 @@ function full_copy($source, $target){
 	return true;
 }
 
+function notify($strMessage, $strTitle) {
+	global $docready;
+	
+	$docready.= '
+	$("#container").notify("create", {
+		title: \''.$strTitle.'\',
+		text: \''.str_replace("'", "\'", $strMessage).'\'
+	});
+	';
+}
+
 ?>
